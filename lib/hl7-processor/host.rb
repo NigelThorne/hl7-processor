@@ -17,7 +17,7 @@ module HL7Processor
         begin
           read_socket(socket)
         rescue EOFError
-          puts "Client closed the connection."
+          puts "#{Time.now.to_s}: Client closed the connection."
         end
       end
 
@@ -28,9 +28,13 @@ module HL7Processor
     def read_socket(socket)
       while(true)
         llp_line = socket.readline('\r')
-        llp = LLPMessage.from_llp(llp_line)
-        channel_instances = @config.channels.collect {|c| c.new }
-        config.processor.process(channel_instances, llp)
+        begin
+          llp = LLPMessage.from_llp(llp_line)
+          channel_instances = @config.channels.collect {|c| c.new }
+          config.processor.process(channel_instances, llp)
+        rescue LLPSyntaxError => e
+          puts "#{Time.now.to_s}: Syntax Error #{e.message}"
+        end
       end
     end
 

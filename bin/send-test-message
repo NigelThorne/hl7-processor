@@ -3,8 +3,10 @@
 require 'hl7-processor'
 require 'socket'
 
+port = ARGV[0].nil? ? 5900 : ARGV[0]
+
 llp = HL7Processor::LLPMessage.from_hl7("hello!")
 
-socket = Socket.tcp("127.0.0.1", 5900)
+socket = Socket.tcp("127.0.0.1", port)
 socket.write(llp.to_s)
 socket.close

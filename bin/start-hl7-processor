@@ -8,7 +8,7 @@ class LoggingChannel
   log_file "hl7.txt"
 
   for_all_messages do |hl7|
-    log.info("Received a message:#{hl7}")
+    log.info("#{Time.now}:#{hl7}")
   end
 
 end
@@ -28,10 +28,11 @@ class AnotherLoggingChannel
 
 end
 
+port = ARGV[0].nil? ? 5900 : ARGV[0]
 host = HL7Processor::Host.new do |config|
-  config.port      = 5900
+  config.port      = port
   config.processor = HL7Processor::Processors::Immediate
-  config.channels  = [LoggingChannel, AnotherLoggingChannel]
+  config.channels  = [LoggingChannel]
 end
 
 host.start

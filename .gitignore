@@ -6,3 +6,7 @@ pkg/*
 .idea/*
 .DS_Store
 hl7.txt
+
+client
+
+client.c
