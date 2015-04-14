@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 
 require 'hl7-processor'
+require 'ruby-hl7'
 
 class LoggingChannel
   extend HL7Processor::Channels::Logging
@@ -8,22 +9,30 @@ class LoggingChannel
   log_file "hl7.txt"
 
   for_all_messages do |hl7|
-    log.info("#{Time.now}:#{hl7}")
+    log.info("#{hl7}")
   end
 
 end
 
-class AnotherLoggingChannel
+class ADTFilter
   extend HL7Processor::Channels::Logging
 
-  log_file "hl7.txt"
+  log_file "adt.txt"
 
-  define_filter :hello_filter do |hl7|
-    hl7 == "hello!"
+  define_filter :adt_filter do |hl7|
+    begin
+      msg = HL7::Message.new(hl7)
+      msg[:MSH].nil? ? false : msg[:MSH].message_type.start_with?('ADT')
+    rescue => e
+      log.error("Error verifying HL7 message is ADT: #{e.message}")
+      false
+    end
   end
 
-  when_matching :hello_filter do |hl7|
-    log.info("Found a match!")
+  when_matching :adt_filter do |hl7|
+    pid_segment = HL7::Message.new(hl7)[:PID]
+    message = pid_segment.nil? ? 'No Patient ID segment present' : "Patient ID=#{pid_segment.patient_id}, Patient Name: #{pid_segment.patient_name}"
+    log.info("#{Time.now}: ADT Message received: #{message}")
   end
 
 end
@@ -32,7 +41,7 @@ port = ARGV[0].nil? ? 5900 : ARGV[0]
 host = HL7Processor::Host.new do |config|
   config.port      = port
   config.processor = HL7Processor::Processors::Immediate
-  config.channels  = [LoggingChannel]
+  config.channels  = [LoggingChannel, ADTFilter]
 end
 
 host.start

@@ -3,9 +3,12 @@
 require 'hl7-processor'
 require 'socket'
 
-port = ARGV[0].nil? ? 5900 : ARGV[0]
+host = ARGV[0].nil? ? 'localhost' : ARGV[0]
+port = ARGV[1].nil? ? 5900 : ARGV[1]
 
-llp = HL7Processor::LLPMessage.from_hl7("hello!")
+raw_msg = "MSH|^~\&|EPICADT|DH|LABADT|DH|201301011226||ADT^A01|HL7MSG00001|P|2.3|\rEVN|A01|201301011223||\rPID|||MRN12345^5^M11||APPLESEED^JOHN^A^III||19710101|M||C|1 CATALYZE STREET^^MADISON^WI^53005-1020|GL|(414)379-1212|(414)271-3434||S||MRN12345001^2^M10|123456789|987654^NC|\rNK1|1|APPLESEED^BARBARA^J|WIFE||||||NK^NEXT OF KIN\rPV1|1|I|2000^2012^01||||004777^GOOD^SIDNEY^J.|||SUR||||ADM|A0|"
+
+llp = HL7Processor::LLPMessage.from_hl7 raw_msg
 
 socket = Socket.tcp("127.0.0.1", port)
 socket.write(llp.to_s)
